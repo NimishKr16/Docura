@@ -62,3 +62,19 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model Document {
+  id        String   @id @default(cuid())
+  title     String
+  content   Json     @db.JsonB // TipTap document JSON
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DocumentHistory {
+  id         String   @id @default(cuid())
+  documentId String
+  content    Json     @db.JsonB
+  createdAt  DateTime @default(now())
+}
