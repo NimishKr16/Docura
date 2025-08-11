@@ -48,151 +48,120 @@ export default function Navbar() {
     }, 1200)
   }
 
-  return (
-    <>
-      <ToastContainer />
-      <AppBar 
-        position="fixed" 
-        elevation={0}
-        sx={{
-          background: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-          color: theme.palette.text.primary,
-        }}
-      >
-        <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 4 } }}>
-          {/* Left Side - Logo */}
-          <Box display="flex" alignItems="center">
-            <Typography
-              variant="h5"
-              component="div"
-              sx={{
-                fontWeight: 700,
-                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                letterSpacing: '-0.5px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  transform: 'scale(1.05)',
-                }
-              }}
-            >
-              Docura
-            </Typography>
-          </Box>
+return (
+  <>
+    <ToastContainer />
+    <AppBar 
+      position="fixed" 
+      elevation={0}
+      sx={{
+        background: 'rgba(255, 255, 255, 0.1)',
+        backdropFilter: 'blur(25px)',
+        WebkitBackdropFilter: 'blur(25px)', // Safari support
+        borderBottom: '1px solid rgba(255, 255, 255, 0.18)',
+        boxShadow: '0 8px 32px rgba(31, 38, 135, 0.15)',
+        color: theme.palette.text.primary,
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+          borderRadius: 'inherit',
+          zIndex: -1,
+        },
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '1px',
+          background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+        }
+      }}
+    >
+      <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 4 } }}>
+        {/* Left Side - Logo */}
+        <Box display="flex" alignItems="center">
+          <Typography
+            variant="h5"
+            component="div"
+            sx={{
+              fontWeight: 700,
+              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.5px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+              '&:hover': {
+                transform: 'scale(1.05)',
+                filter: 'brightness(1.1)',
+              }
+            }}
+          >
+            Docura
+          </Typography>
+        </Box>
 
-          {/* Right Side - User Menu */}
-          <Box display="flex" alignItems="center">
-            {/* Simple Logout Button Version */}
-            <Tooltip title="Logout" placement="bottom">
-              <IconButton
-                onClick={handleLogout}
-                sx={{
-                  background: alpha(theme.palette.error.main, 0.1),
-                  border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`,
-                  borderRadius: 2,
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    background: alpha(theme.palette.error.main, 0.15),
-                    borderColor: theme.palette.error.main,
-                    transform: 'translateY(-1px)',
-                    boxShadow: `0 4px 12px ${alpha(theme.palette.error.main, 0.3)}`,
-                  }
-                }}
-              >
-                <Logout sx={{ color: theme.palette.error.main, fontSize: 20 }} />
-              </IconButton>
-            </Tooltip>
-
-            {/* Alternative: User Profile Dropdown */}
-            {/* Uncomment this section if you prefer a dropdown menu instead */}
-            {/*
-            <Button
-              onClick={handleMenuClick}
-              endIcon={<KeyboardArrowDown />}
+        {/* Right Side - User Menu */}
+        <Box display="flex" alignItems="center">
+          {/* Enhanced Glass Logout Button */}
+          <Tooltip title="Logout" placement="bottom">
+            <IconButton
+              onClick={handleLogout}
               sx={{
-                textTransform: 'none',
+                background: 'rgba(239, 68, 68, 0.1)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
                 borderRadius: 2,
-                px: 2,
-                py: 1,
-                background: alpha(theme.palette.grey[100], 0.5),
-                border: `1px solid ${alpha(theme.palette.grey[300], 0.3)}`,
-                transition: 'all 0.2s ease',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+                  zIndex: 0,
+                },
                 '&:hover': {
-                  background: alpha(theme.palette.grey[100], 0.8),
-                  borderColor: theme.palette.primary.main,
-                  transform: 'translateY(-1px)',
-                  boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`,
-                }
-              }}
-            >
-              <Avatar
-                sx={{
-                  width: 32,
-                  height: 32,
-                  mr: 1,
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                }}
-              >
-                <Person sx={{ fontSize: 18 }} />
-              </Avatar>
-              <Typography variant="body2" color="text.primary" fontWeight={500}>
-                John Doe
-              </Typography>
-            </Button>
-
-            <Menu
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleMenuClose}
-              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-              PaperProps={{
-                sx: {
-                  mt: 1.5,
-                  borderRadius: 2,
-                  minWidth: 200,
-                  background: 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-                }
-              }}
-            >
-              <MenuItem onClick={handleMenuClose} sx={{ borderRadius: 1, mx: 1, my: 0.5 }}>
-                <Person sx={{ mr: 2, fontSize: 20 }} />
-                Profile
-              </MenuItem>
-              <MenuItem onClick={handleMenuClose} sx={{ borderRadius: 1, mx: 1, my: 0.5 }}>
-                <Settings sx={{ mr: 2, fontSize: 20 }} />
-                Settings
-              </MenuItem>
-              <Divider sx={{ my: 1 }} />
-              <MenuItem 
-                onClick={handleLogout} 
-                sx={{ 
-                  borderRadius: 1, 
-                  mx: 1, 
-                  my: 0.5,
-                  color: theme.palette.error.main,
-                  '&:hover': {
-                    background: alpha(theme.palette.error.main, 0.1)
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  borderColor: 'rgba(239, 68, 68, 0.4)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 8px 25px rgba(239, 68, 68, 0.25), 0 4px 12px rgba(0, 0, 0, 0.1)',
+                  '&::before': {
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))',
                   }
-                }}
-              >
-                <Logout sx={{ mr: 2, fontSize: 20 }} />
-                Logout
-              </MenuItem>
-            </Menu>
-            */}
-          </Box>
-        </Toolbar>
-      </AppBar>
+                },
+                '&:active': {
+                  transform: 'translateY(-1px)',
+                }
+              }}
+            >
+              <Logout 
+                sx={{ 
+                  color: theme.palette.error.main, 
+                  fontSize: 20,
+                  position: 'relative',
+                  zIndex: 1,
+                  filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))'
+                }} 
+              />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Toolbar>
+    </AppBar>
     </>
   )
 }
