@@ -2,6 +2,7 @@
 
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import CharacterCount from '@tiptap/extension-character-count';
 import { 
   Box, 
   Paper, 
@@ -71,7 +72,7 @@ const editorTheme = createTheme({
 
 export default function Editor({ content, onChange }: { content: any, onChange: (json: any) => void }) {
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [StarterKit, CharacterCount.configure({ limit: null })],
     content,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
@@ -406,10 +407,10 @@ export default function Editor({ content, onChange }: { content: any, onChange: 
           >
             <Box display="flex" gap={4}>
               <Typography variant="body2" sx={{ color: '#6b7280', fontSize: '13px' }}>
-                {editor.storage.characterCount?.characters() || 0} characters
+                {editor.storage.characterCount?.characters() ?? 0} characters
               </Typography>
               <Typography variant="body2" sx={{ color: '#6b7280', fontSize: '13px' }}>
-                {editor.storage.characterCount?.words() || 0} words
+                {editor.storage.characterCount?.words() ?? 0} words
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ color: '#9ca3af', fontSize: '12px' }}>

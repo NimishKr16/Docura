@@ -3,9 +3,9 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
-import { Box, CircularProgress, Container, IconButton, Paper, Tooltip, Typography, TextField } from "@mui/material";
+import { Box, CircularProgress, Container, IconButton, Paper, Tooltip, Typography, TextField, Menu, MenuItem, Button } from "@mui/material";
 import Editor from "@/components/Editor";
-import { MoreVert, Share } from "@mui/icons-material";
+import { MoreVert, Share, ArrowDropDown, Download } from "@mui/icons-material";
 
 export default function DocumentPage() {
   const { id } = useParams(); // URL param
@@ -15,6 +15,7 @@ export default function DocumentPage() {
   const [content, setContent] = useState('');
   const [titleTimeout, setTitleTimeout] = useState<NodeJS.Timeout | null>(null);
   const [contentTimeout, setContentTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [exportAnchorEl, setExportAnchorEl] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -83,16 +84,64 @@ export default function DocumentPage() {
     setContentTimeout(timeout);
   }
 
+  function extractTextFromTipTap(node: any): string {
+    if (!node) return '';
+    if (node.text) return node.text;
+    if (node.content && Array.isArray(node.content)) {
+      return node.content.map(extractTextFromTipTap).join(' ');
+    }
+    return '';
+  }
+
+  const plainText = extractTextFromTipTap(content);
+  const wordCount = plainText.trim() === '' ? 0 : plainText.trim().split(/\s+/).length;
+  const readingTime = Math.ceil(wordCount / 200);
+
+  const handleExportClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setExportAnchorEl(event.currentTarget);
+  };
+
+  const handleExportClose = () => {
+    setExportAnchorEl(null);
+  };
+
+  const handleExportPDF = async () => {
+    handleExportClose();
+    if (!doc?.id) return;
+    try {
+      const response = await fetch('/api/export', {
+        method: 'POST',
+        body: JSON.stringify({ documentId: doc.id }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        console.error('Failed to export PDF');
+        return;
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${doc.title}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+    }
+  };
+
   if (loading) return <div style={{ display: "flex", justifyContent: "center", marginTop: 50 }}><CircularProgress /></div>;
   if (!doc) return <Typography sx={{ mt: 4, textAlign: "center" }}>Document not found</Typography>;
 
   return (
     <Box
-  sx={{
-    minHeight: '100vh',
-    background: '#fafbfc',
-    pt: '80px', // Account for fixed navbar
-  }}
+  // sx={{
+  //   minHeight: '100vh',
+  //   background: '#fafbfc',
+  //   pt: '80px', // Account for fixed navbar
+  // }}
 >
   <Container maxWidth="lg" sx={{ py: 4 }}>
     {/* Document Header */}
@@ -107,7 +156,7 @@ export default function DocumentPage() {
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
       }}
     >
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" >
         <Box>
           <TextField
             variant="standard"
@@ -135,7 +184,7 @@ export default function DocumentPage() {
           />
           <Box display="flex" alignItems="center" gap={2}>
             <Typography variant="body2" sx={{ color: '#6b7280' }}>
-              Last edited {new Date().toLocaleDateString()}
+              Last edited {new Date(doc.updatedAt).toLocaleString()}
             </Typography>
             <Box
               sx={{
@@ -152,7 +201,42 @@ export default function DocumentPage() {
         </Box>
         
         {/* Action Buttons */}
-        <Box display="flex" gap={1}>
+        <Box display="flex" gap={1} alignItems="center">
+          <Button
+            variant="contained"
+            startIcon={<Download />}
+            endIcon={<ArrowDropDown />}
+            onClick={handleExportClick}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              backgroundColor: '#f8fafc',
+              color: '#1a1a1a',
+              '&:hover': {
+                backgroundColor: '#f1f5f9',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+              },
+            }}
+          >
+            Export
+          </Button>
+          <Menu
+            anchorEl={exportAnchorEl}
+            open={Boolean(exportAnchorEl)}
+            onClose={handleExportClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+          >
+            <MenuItem onClick={handleExportPDF}>Save as PDF</MenuItem>
+            <MenuItem onClick={handleExportClose}>Save as Word</MenuItem>
+          </Menu>
           <Tooltip title="Share Document">
             <IconButton
               sx={{
@@ -204,11 +288,11 @@ export default function DocumentPage() {
     >
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Typography variant="body2" sx={{ color: '#6b7280' }}>
-          Document created on {new Date().toLocaleDateString()}
+          Document created on {new Date(doc.createdAt).toLocaleString()}
         </Typography>
         <Box display="flex" gap={3}>
           <Typography variant="body2" sx={{ color: '#6b7280' }}>
-            Reading time: ~2 min
+            Reading time: ~{readingTime} min
           </Typography>
           <Typography variant="body2" sx={{ color: '#6b7280' }}>
             Version 1.0
