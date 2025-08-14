@@ -132,6 +132,33 @@ export default function DocumentPage() {
     }
   };
 
+  const handleExportDOCX = async () => {
+    handleExportClose();
+    if (!doc?.id) return;
+    try {
+      const response = await fetch('/api/export-docx', {
+        method: 'POST',
+        body: JSON.stringify({ documentId: doc.id }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        console.error('Failed to export DOCX');
+        return;
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${doc.title}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting DOCX:', error);
+    }
+  };
+
   if (loading) return <div style={{ display: "flex", justifyContent: "center", marginTop: 50 }}><CircularProgress /></div>;
   if (!doc) return <Typography sx={{ mt: 4, textAlign: "center" }}>Document not found</Typography>;
 
@@ -156,8 +183,8 @@ export default function DocumentPage() {
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
       }}
     >
-      <Box display="flex" justifyContent="space-between" alignItems="center" >
-        <Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, gap: 2 }}>
+        <Box sx={{ width: { xs: '100%', sm: 'auto' } }}>
           <TextField
             variant="standard"
             value={title}
@@ -165,7 +192,7 @@ export default function DocumentPage() {
             sx={{
               fontWeight: 700,
               color: '#1a1a1a',
-              fontSize: { xs: '1.75rem', sm: '2.25rem' },
+              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' },
               lineHeight: 1.2,
               mb: 1,
               '& .MuiInputBase-input': {
@@ -174,6 +201,8 @@ export default function DocumentPage() {
                 fontSize: 'inherit',
                 lineHeight: 'inherit',
                 padding: 0,
+                overflowWrap: 'break-word',
+                wordBreak: 'break-word',
               },
               '& .MuiInput-underline:before, & .MuiInput-underline:after': {
                 borderBottom: 'none',
@@ -186,22 +215,11 @@ export default function DocumentPage() {
             <Typography variant="body2" sx={{ color: '#6b7280' }}>
               Last edited {new Date(doc.updatedAt).toLocaleString()}
             </Typography>
-            <Box
-              sx={{
-                width: 4,
-                height: 4,
-                borderRadius: '50%',
-                background: '#d1d5db',
-              }}
-            />
-            <Typography variant="body2" sx={{ color: '#6b7280' }}>
-              Auto-saved
-            </Typography>
           </Box>
         </Box>
         
         {/* Action Buttons */}
-        <Box display="flex" gap={1} alignItems="center">
+        <Box display="flex" gap={1} alignItems="center" sx={{ flexWrap: { xs: 'wrap', sm: 'nowrap' }, justifyContent: { xs: 'flex-start', sm: 'flex-start' }, mt: { xs: 2, sm: 0 }, width: { xs: '100%', sm: 'auto' } }}>
           <Button
             variant="contained"
             startIcon={<Download />}
@@ -235,7 +253,7 @@ export default function DocumentPage() {
             }}
           >
             <MenuItem onClick={handleExportPDF}>Save as PDF</MenuItem>
-            <MenuItem onClick={handleExportClose}>Save as Word</MenuItem>
+            <MenuItem onClick={handleExportDOCX}>Save as Word</MenuItem>
           </Menu>
           <Tooltip title="Share Document">
             <IconButton

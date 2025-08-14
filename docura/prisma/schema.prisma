@@ -15,31 +15,31 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String   @unique
+  email         String    @unique
   emailVerified DateTime?
   image         String?
   password      String? // for email/password signup
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   accounts      Account[]
   sessions      Session[]
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id])
 
@@ -64,12 +64,13 @@ model VerificationToken {
 }
 
 model Document {
-  id        String   @id @default(cuid())
-  title     String
-  content   Json     @db.JsonB // TipTap document JSON
-  ownerId   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String           @id @default(cuid())
+  title          String
+  content        Json             @db.JsonB // TipTap document JSON
+  ownerId        String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  DocumentAccess DocumentAccess[]
 }
 
 model DocumentHistory {
@@ -77,4 +78,27 @@ model DocumentHistory {
   documentId String
   content    Json     @db.JsonB
   createdAt  DateTime @default(now())
+
+  accessList DocumentAccess[]
+}
+
+model DocumentAccess {
+  id         String     @id @default(uuid())
+  documentId String
+  userId     String?
+  role       AccessRole
+  createdAt  DateTime   @default(now())
+
+  document          Document         @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  DocumentHistory   DocumentHistory? @relation(fields: [documentHistoryId], references: [id])
+  documentHistoryId String?
+
+  @@index([documentId])
+  @@index([userId])
+}
+
+enum AccessRole {
+  viewer
+  commenter
+  editor
 }

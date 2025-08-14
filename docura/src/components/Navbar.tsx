@@ -42,7 +42,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     handleMenuClose()
     await supabase.auth.signOut()
-    toast.success('Logged out successfully!')
+    toast.success('Logging you out...')
     setTimeout(() => {
       window.location.href = '/login'
     }, 1200)

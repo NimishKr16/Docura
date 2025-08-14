@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { 
   Container, 
@@ -18,7 +19,6 @@ import {
   CircularProgress,
   Checkbox,
   FormControlLabel,
-  Alert
 } from '@mui/material'
 import { 
   Visibility, 
@@ -30,21 +30,19 @@ import {
   GitHub,
   Apple
 } from '@mui/icons-material'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const theme = useTheme()
 
   const handleLogin = async () => {
-    // Clear previous messages
-    setErrorMsg(null)
-    setSuccessMsg(null)
     setLoading(true)
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -53,9 +51,9 @@ export default function LoginPage() {
     setLoading(false)
 
     if (error) {
-      setErrorMsg(error.message)
+      toast.error(error.message)
     } else {
-      setSuccessMsg('Logged in successfully!')
+      toast.success('Logged in successfully!')
       window.location.href = 'http://localhost:3000'
     }
   }
@@ -86,17 +84,6 @@ export default function LoginPage() {
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)'
           }}
         >
-          {/* Alert Messages */}
-          {errorMsg && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {errorMsg}
-            </Alert>
-          )}
-          {successMsg && (
-            <Alert severity="success" sx={{ mb: 3 }}>
-              {successMsg}
-            </Alert>
-          )}
           {/* Header Section */}
           <Box textAlign="center" mb={4}>
             {/* <Box
@@ -383,6 +370,7 @@ export default function LoginPage() {
                   minWidth: 'auto',
                   color: theme.palette.primary.main
                 }}
+                onClick={() => router.push('/signup')}
               >
                 Create one here
               </Button>
@@ -424,6 +412,7 @@ export default function LoginPage() {
           </Box>
         </Paper>
       </Container>
+      <ToastContainer />
     </Box>
   )
 }

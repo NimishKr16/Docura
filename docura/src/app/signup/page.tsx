@@ -28,6 +28,7 @@ import {
   Apple
 } from '@mui/icons-material'
 import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
@@ -39,6 +40,7 @@ export default function SignUpPage() {
   const [emailError, setEmailError] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const theme = useTheme()
+  const router = useRouter()
 
   const isValidEmail = (email: string) => {
     // Simple email regex validation
@@ -369,6 +371,7 @@ export default function SignUpPage() {
                   minWidth: 'auto',
                   color: theme.palette.primary.main
                 }}
+                onClick={() => router.push('/login')}
               >
                 Sign in here
               </Button>
