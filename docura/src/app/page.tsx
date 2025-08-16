@@ -21,7 +21,7 @@ import { User } from "@supabase/supabase-js";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "@/components/Navbar";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   FolderOpen,
   ViewList,
@@ -37,6 +37,8 @@ export default function Home() {
   const [loadingOpen, setLoadingOpen] = useState(false); // Track document opening state
   const router = useRouter();
   const theme = useTheme();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -52,22 +54,44 @@ export default function Home() {
   useEffect(() => {
     if (user) {
       setLoadingDocs(true);
-      supabase
-        .from("Document")
-        .select("*")
-        .eq("ownerId", user.id)
-        .order("updatedAt", { ascending: false })
-        .then(({ data, error }) => {
-          if (error) {
-            console.error("Error fetching documents:", error);
-            toast.error("Failed to load documents.");
-          } else if (data) {
-            setDocuments(data);
-          }
-          setLoadingDocs(false);
-        });
+      if (token) {
+        fetch("/api/document/by-token?token=" + encodeURIComponent(token))
+          .then(async (res) => {
+            if (!res.ok) {
+              throw new Error("Failed to fetch document by token");
+            }
+            return res.json();
+          })
+          .then((data) => {
+            // Assume the API returns an array of documents (or a single doc in an array)
+            setDocuments(Array.isArray(data) ? data : [data]);
+          })
+          .catch((error) => {
+            console.error("Error fetching document by token:", error);
+            toast.error("Failed to load shared document.");
+            setDocuments([]);
+          })
+          .finally(() => {
+            setLoadingDocs(false);
+          });
+      } else {
+        supabase
+          .from("Document")
+          .select("*")
+          .eq("ownerId", user.id)
+          .order("updatedAt", { ascending: false })
+          .then(({ data, error }) => {
+            if (error) {
+              console.error("Error fetching documents:", error);
+              toast.error("Failed to load documents.");
+            } else if (data) {
+              setDocuments(data);
+            }
+            setLoadingDocs(false);
+          });
+      }
     }
-  }, [user]);
+  }, [user, token]);
 
   if (loading) {
     return null;

@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { Box, CircularProgress, Container, IconButton, Paper, Tooltip, Typography, TextField, Menu, MenuItem, Button } from "@mui/material";
 import Editor from "@/components/Editor";
 import { MoreVert, Share, ArrowDropDown, Download } from "@mui/icons-material";
+import ShareDocumentModal from "@/components/ShareDocumentModal";
+import { toast } from "react-toastify";
 
 export default function DocumentPage() {
   const { id } = useParams(); // URL param
@@ -16,6 +18,19 @@ export default function DocumentPage() {
   const [titleTimeout, setTitleTimeout] = useState<NodeJS.Timeout | null>(null);
   const [contentTimeout, setContentTimeout] = useState<NodeJS.Timeout | null>(null);
   const [exportAnchorEl, setExportAnchorEl] = useState<HTMLElement | null>(null);
+
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+
+  const handleOpenShareModal = (docId: string) => {
+    setSelectedDocumentId(docId);
+    setShareModalOpen(true);
+  };
+
+  const handleCloseShareModal = () => {
+    setShareModalOpen(false);
+    setSelectedDocumentId(null);
+  };
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -266,6 +281,7 @@ export default function DocumentPage() {
                   borderColor: '#cbd5e1',
                 }
               }}
+              onClick={() => handleOpenShareModal(doc.id)}
             >
               <Share fontSize="small" />
             </IconButton>
@@ -319,6 +335,20 @@ export default function DocumentPage() {
       </Box>
     </Paper>
   </Container>
+  {selectedDocumentId && (
+    <ShareDocumentModal
+      open={shareModalOpen}
+      onClose={handleCloseShareModal}
+      documentId={selectedDocumentId}
+      onStatusChange={(success: boolean) => {
+        if (success) {
+          toast.success("Sharing settings updated!");
+        } else {
+          toast.error("Failed to update sharing settings.");
+        }
+      }}
+    />
+  )}
 </Box>
   );
 }
