@@ -56,7 +56,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     isPublic,
-    shareUrl: isPublic ? `${process.env.NEXT_PUBLIC_APP_URL}/document/${documentId}?token=${shareToken}` : null
+    shareUrl: isPublic ? `${process.env.NEXT_PUBLIC_APP_URL}/document/by-token?token=${shareToken}` : null
   })
 }
 
@@ -103,15 +103,17 @@ export async function POST(req: Request) {
       .update({ isPublic: true, shareToken })
       .eq('id', documentId)
   } else {
+    console.log("SHARE TOKEN WAS NULL")
     shareToken = null
     await supabase
       .from('Document')
       .update({ isPublic: false, shareToken: null })
-      .eq('id', documentId)
+      .eq('id', documentId);
   }
+  console.log("SHARE TOKEN AFTER NULL CHECK:", shareToken);
 
   return NextResponse.json({
     success: true,
-    shareUrl: enable ? `${process.env.NEXT_PUBLIC_APP_URL}/document/${documentId}?token=${shareToken}` : null
+    shareUrl: enable ? `${process.env.NEXT_PUBLIC_APP_URL}/document/by-token?token=${shareToken}` : null
   })
 }

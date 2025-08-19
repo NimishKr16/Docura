@@ -1,16 +1,20 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { Box, CircularProgress, Container, IconButton, Paper, Tooltip, Typography, TextField, Menu, MenuItem, Button } from "@mui/material";
 import Editor from "@/components/Editor";
+import ErrorDisplay from "@/components/DocError";
 import { MoreVert, Share, ArrowDropDown, Download } from "@mui/icons-material";
 import ShareDocumentModal from "@/components/ShareDocumentModal";
 import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 export default function DocumentPage() {
   const { id } = useParams(); // URL param
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
   const [doc, setDoc] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState('');
@@ -18,7 +22,7 @@ export default function DocumentPage() {
   const [titleTimeout, setTitleTimeout] = useState<NodeJS.Timeout | null>(null);
   const [contentTimeout, setContentTimeout] = useState<NodeJS.Timeout | null>(null);
   const [exportAnchorEl, setExportAnchorEl] = useState<HTMLElement | null>(null);
-
+   const router = useRouter();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
 
@@ -34,24 +38,52 @@ export default function DocumentPage() {
 
   useEffect(() => {
     const fetchDocument = async () => {
-      const { data, error } = await supabase
-        .from("Document")
-        .select("*")
-        .eq("id", id)
-        .single();
+      setLoading(true);
+      if (token) {
+        // Token-based access
+        // console.log("token on frontend: ", token);
 
-      if (error) {
-        console.error("Error fetching document:", error.message);
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const accessToken = session?.access_token;
+          const response = await fetch(`/api/document/by-token?token=${token}`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+          console.log("response: ",response);
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch document by token");
+          }
+          const data = await response.json();
+          setDoc(data);
+          setTitle(data.title || '');
+          setContent(data.content || '');
+        } catch (error: any) {
+          console.error("Error fetching document by token:", error.message || error);
+        } finally {
+          setLoading(false);
+        }
       } else {
-        setDoc(data);
-        setTitle(data.title || '');
-        setContent(data.content || '');
+        // Supabase fetch
+        const { data, error } = await supabase
+          .from("Document")
+          .select("*")
+          .eq("id", id)
+          .single();
+        if (error) {
+          console.error("Error fetching document:", error.message);
+        } else {
+          setDoc(data);
+          setTitle(data.title || '');
+          setContent(data.content || '');
+        }
+        setLoading(false);
       }
-      setLoading(false);
     };
-
     if (id) fetchDocument();
-  }, [id]);
+  }, [id, token]);
 
   const saveTitleToSupabase = useCallback(async (newTitle: string) => {
     if (!doc?.id) return;
@@ -174,8 +206,28 @@ export default function DocumentPage() {
     }
   };
 
-  if (loading) return <div style={{ display: "flex", justifyContent: "center", marginTop: 50 }}><CircularProgress /></div>;
-  if (!doc) return <Typography sx={{ mt: 4, textAlign: "center" }}>Document not found</Typography>;
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        sx={{ minHeight: "100vh" }}
+      >
+        <CircularProgress size={48} />
+      </Box>
+    );
+  }
+
+  if (!doc)
+    return (
+      <ErrorDisplay
+        type="access-denied"
+        onGoHome={() => router.push('/')}
+        onGoBack={() => router.back()}
+        // customMessage="The document you’re looking for could not be found."
+      />
+    );
 
   return (
     <Box
