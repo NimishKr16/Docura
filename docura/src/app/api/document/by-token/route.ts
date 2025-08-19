@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url)
   const token = searchParams.get('token')
-  console.log("token: ",token);
+  // console.log("token: ",token);
 
   if (!token) {
     return NextResponse.json({ error: 'Token required' }, { status: 400 })
@@ -24,7 +24,7 @@ export async function GET(req: Request) {
     .select('*')
     .eq('shareToken', token)
     .maybeSingle()
-  console.log("doc: ",doc);
+  // console.log("doc: ",doc);
 
   if (error) {
     console.error("Supabase error:", error);
